@@ -14,3 +14,5 @@ connection.connect(function(err) {
   if (err) throw err;
   runSearch();
 });
+
+connection.connect();
