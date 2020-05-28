@@ -352,7 +352,7 @@ function addNewEmployee() {
         }, {
           name: "newEmpManager",
           type: "list",
-          message: "Select a manager (if applicable): ",
+          message: "Select a manager: ",
           choices: function (empQuery) {
             var choiceEmp = [];
             for (var i = 0; i < data.length; i++) {
