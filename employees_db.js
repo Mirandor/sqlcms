@@ -644,8 +644,67 @@ connection.query("SELECT * FROM employee", function (err, res) {
 });
 }
 
+// Update Employee Role
 function updateEmpRole(){
-  
+  var empSelectQuery = connection.query("SELECT * FROM employee", function (err, data) {
+    if (err) throw err;
+    var empRoleQuery = connection.query("SELECT * FROM roles", function (err, res) {
+    if (err) throw err;
+    inquirer.prompt([
+      {
+        name: "empUpSelect",
+        type: "list",
+        message: "Select which employee you want to update: ",
+        choices: function (empSelectQuery) {
+          var choiceUpEmp = [];
+          for (var i = 0; i < data.length; i++) {
+            choiceUpEmp.push(data[i].euId + ": " + data[i].first_name + " " + data[i].last_name);
+          }
+          return choiceUpEmp;
+        }
+      }, {
+        name: "empRole",
+        type: "list",
+        message: "Choose a new role: ",
+        choices: function (empRoleQuery) {
+          var choiceEmpRole = [];
+          for (var i = 0; i < res.length; i++) {
+            choiceEmpRole.push(res[i].ruId + ": " + res[i].role);
+          }
+          return choiceEmpRole;
+        }
+      }
+    ])
+    .then(function(answer) {
+      var splitUpEmp = answer.empUpSelect.split(": ");
+      var upEmpId = parseInt(splitUpEmp[0]);
+      var chosenUpEmp;
+      for (var i =0; i < data.length; i++) {
+        if (data[i].choiceUpEmp === answer.choice) {
+          chosenUpEmp = data[i];
+        }
+      }
+      var splitEmpRole = answer.empRole.split(": ");
+      var empRoleId = parseInt(splitEmpRole[0]);
+      var chosenEmpRole;
+      for (var i = 0; i < res.length; i++) {
+        if (res[i].choiceEmpRole === answer.choiceEmpRole) {
+          chosenEmpRole = res[i];
+        }
+      }
+      connection.query(`UPDATE employee 
+      SET role_id = "${empRoleId}"
+      WHERE euId = ${upEmpId};`,
+      function (err){
+        if (err) throw err;
+        console.log(" ");
+        console.log(gradient.fruit("   Hooray! We updated the employee role.   "));
+        console.log(" ");
+        back();
+      });
+    });
+  });
+});
 }
 
 // Update Roles
