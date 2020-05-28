@@ -18,7 +18,7 @@ var connection = mysql.createConnection({
 });
 
 // Chalk
-var connected = chalk.bgBlack;
+var bbBlack = chalk.bgBlack.bold;
 var bbWhite = chalk.bgWhiteBright.bold;
 var link = chalkPipe('blue.underline');
 var error = chalkPipe('bgRed.#cccccc');
@@ -33,7 +33,9 @@ let alertGradient = gradient([
 
 connection.connect(function (err) {
   if (err) throw err;
+  console.log(" ");
   console.log(gradient.cristal("  Connected!  "));
+  console.log(" ");
   runRequest();
 });
 
@@ -42,7 +44,7 @@ function back() {
   inquirer.prompt({
     name: "back",
     type: "list",
-    message: "Go [BACK] to main menu?",
+    message: "Go back to main menu?",
     choices: ["BACK", "EXIT"]
   })
     .then(function (answer) {
@@ -61,13 +63,14 @@ function runRequest() {
     type: "list",
     message: "What would you like to do?",
     choices: [
-      new inquirer.Separator(".........."),
       "View",
       "Add",
       "Update",
       "Delete",
       "Search",
-      "Exit"
+      new inquirer.Separator(".........."),
+      "Exit",
+      new inquirer.Separator("..........")
     ]
   }).then(function (answer) {
     switch (answer.actionMenu) {
@@ -111,8 +114,10 @@ function viewBy() {
       "Employees by Manager",
       "Roles ALL",
       "Departments ALL",
+      new inquirer.Separator(".........."),
       "Back",
-      "Exit"
+      "Exit",
+      new inquirer.Separator("..........")
     ]
   })
     .then(function (answer) {
@@ -245,7 +250,7 @@ function viewEmployeesManager() {
         `,
           function (err, res) {
             if (err) throw err;
-            printMessage(["Employees by Manager "],{border: true, marginTop: 1, marginBottom: 1, paddingTop: 0, paddingBottom: 0});
+            printMessage(["Employees by Manager"],{border: true, marginTop: 1, marginBottom: 1, paddingTop: 0, paddingBottom: 0});
             console.table(res);
             console.log("  ");
             back();
@@ -257,13 +262,13 @@ function viewEmployeesManager() {
 // View ALL Roles
 function viewRolesAll() {
   connection.query(`
-    SELECT roles.ruId AS 'roleId', roles.role, roles.salary, departments.department_name AS 'department'
+    SELECT roles.ruId AS 'id', roles.role, roles.salary, departments.department_name AS 'department'
     FROM (roles
       INNER JOIN departments ON roles.department_id = departments.duId)
-      ORDER BY roleId;
+      ORDER BY id;
   `, function (err, res) {
     if (err) throw err;
-    printMessage([],{border: false, marginTop: 1, marginBottom: 1, paddingTop: 0, paddingBottom: 0});
+    printMessage(["All Roles"],{border: true, marginTop: 1, marginBottom: 1, paddingTop: 0, paddingBottom: 0});
     console.table(res);
     console.log(" ");
     back();
@@ -273,9 +278,9 @@ function viewRolesAll() {
 // View ALL Departments
 function viewDepartmentsAll() {
   connection.query(`
-  SELECT duId AS 'dept id', department_name AS 'department' FROM departments ORDER BY duId`, function (err, res) {
+  SELECT duId AS 'id', department_name AS 'department' FROM departments ORDER BY duId`, function (err, res) {
     if (err) throw err;
-    printMessage([],{border: false, marginTop: 1, marginBottom: 1, paddingTop: 0, paddingBottom: 0});
+    printMessage(["All Departments"],{border: true, marginTop: 1, marginBottom: 1, paddingTop: 0, paddingBottom: 0});
     console.table(res);
     console.log(" ");
     back();
@@ -296,8 +301,10 @@ function addNew() {
       "Employee",
       "Role",
       "Department",
+      new inquirer.Separator(".........."),
       "Back",
-      "Exit"
+      "Exit",
+      new inquirer.Separator("..........")
     ]
   })
     .then(function (answer) {
@@ -388,7 +395,9 @@ function addNewEmployee() {
     VALUES ("${answer.firstName}", "${answer.lastName}", "${roleId}", "${empId}");`,
             function (err) {
               if (err) throw err;
-              console.log(bbWhite(gradient.rainbow("   Success! Created new employee.   ")));
+              console.log(" ");
+              console.log(gradient.vice("   Success! Created new employee.   "));
+              console.log(" ");
               back();
             });
         });
@@ -438,9 +447,11 @@ function addNewRole() {
           }
         }
         var query = connection.query(`INSERT INTO roles (role, salary, department_id) VALUES ("${answer.newRole}", "${answer.salary}", "${deptId}");`,
-          function (err, answer) {
+          function (err) {
             if (err) throw err;
-            console.log(bbWhite(gradient.rainbow("   Success! New role created.   ")));
+            console.log(" ");
+            console.log(gradient.vice("   Success! New role created.   "));
+            console.log(" ");
             back();
           });
       });
@@ -461,11 +472,14 @@ function addNewDepartment() {
     ("${answer.newDepartment}");`,
         function (err) {
           if (err) throw err;
-          console.log(bbWhite(gradient.rainbow("   Success! New department created.   ")));
+          console.log(" ");
+          console.log(gradient.vice("   Success! New department created.   "));
+          console.log(" ");
           back();
         });
     });
 }
+
 
 // UPDATE
 
@@ -481,8 +495,10 @@ function updateBy() {
       "Employee Manager",
       "Update Roles",
       "Update Departments",
+      new inquirer.Separator(".........."),
       "Back",
-      "Exit"
+      "Exit",
+      new inquirer.Separator("..........")
     ]
   })
     .then(function (answer) {
@@ -520,30 +536,107 @@ function updateEmployee() {
   connection.query("SELECT * FROM employee", function (err, res) {
     if (err) throw err;
     inquirer.prompt([{
-      name: "employeeName",
+      name: "selectedEmployee",
       type: "list",
       choices: function () {
-        var choiceArray = [];
+        var choiceSelEmp = [];
         for (var i = 0; i < res.length; i++) {
-          choiceArray.push(res[i].first_name + " " + res[i].last_name);
+          choiceSelEmp.push(res[i].euId +": " + res[i].first_name + " " + res[i].last_name);
         }
-        return choiceArray;
+        return choiceSelEmp;
       },
       message: "Which employee name do you want to change?"
     }, {
-      name: "updateSelectedEmployee"
+      name: "upFirstName",
+      type: "input",
+      message: "First Name: "
+    }, {
+      name: "upLastName",
+      type: "input",
+      message: "Last Name: "
     }
     ])
       .then(function (answer) {
-        connection.query("UPDATE products SET ? WHERE ?",
-        )
+        var splitSelEmp = answer.selectedEmployee.split(": ");
+        var selEmpId = parseInt(splitSelEmp[0]);
+        var chosenSelEmp;
+        for (var i = 0; i < res.length; i++) {
+          if (res[i].choiceSelEmp === answer.choice) {
+            chosenSelEmp = res[i];
+          }
+        }
+        connection.query(`UPDATE employee 
+        SET first_name = "${answer.upFirstName}", last_name = "${answer.upLastName}"
+        WHERE euId = ${selEmpId};`,
+        function (err) {
+          if (err) throw err;
+          console.log(" ");
+          console.log(gradient.fruit("   Hooray! We renamed the employee.   "));
+          console.log(" ");
+          back();
+        });
       });
   });
 }
 
 // Update Employee Manager
 function updateManager() {
-
+connection.query("SELECT * FROM employee", function (err, res) {
+  if (err) throw err;
+  inquirer.prompt([
+    {
+      name: "empSelect",
+      type: "list",
+      message: "Select which employee you want to update: ",
+      choices: function () {
+        var choiceEmp = [];
+        for (var i = 0; i < res.length; i++) {
+          choiceEmp.push(res[i].euId + ": " + res[i].first_name + " " + res[i].last_name);
+        }
+        return choiceEmp;
+      }
+    }, {
+      name: "empManagerUpdate",
+      type: "list",
+      message: "Choose a manager: ",
+      choices: function () {
+        var choiceUpManager = [];
+        for (var i = 0; i < res.length; i++) {
+          choiceUpManager.push(res[i].euId + ": " + res[i].first_name + " " + res[i].last_name);
+        }
+        return choiceUpManager;
+      }
+    }
+  ])
+  .then(function(answer) {
+    var splitEmp = answer.empSelect.split(": ");
+    var empSelectId = parseInt(splitEmp[0]);
+    var chosenEmp;
+    for (var i =0; i < res.length; i++) {
+      if (res[i].choiceEmp === answer.choice) {
+        chosenEmp = res[i];
+      }
+    }
+    var splitUpManager = answer.empManagerUpdate.split(": ");
+    var upEmpMangerId = parseInt(splitUpManager[0]);
+    var chosenUpManager;
+    for (var i = 0; i < res.length; i++) {
+      if (res[i].choiceUpManager === answer.choiceUpManager) {
+        chosenUpManager = res[i];
+      }
+    }
+    connection.query(`UPDATE employee 
+    SET manager_id = "${upEmpMangerId}"
+    WHERE euId = ${empSelectId};`,
+    function (err){
+      if (err) throw err;
+      console.log(" ");
+      console.log(gradient.fruit("   Hooray! We updated the manager.   "));
+      console.log(" ");
+      back();
+    });
+  });
+});
 }
 
 // Update Roles
@@ -592,7 +685,9 @@ function updateRole() {
     WHERE ruId = ${roleId};`,
           function (err) {
             if (err) throw err;
-            console.log("Hooray! We renamed a role.");
+            console.log(" ");
+            console.log(gradient.fruit("   Hooray! We renamed a role.   "));
+            console.log(" ");
             back();
           });
       });
@@ -635,12 +730,15 @@ function updateDepartment() {
     WHERE duId = ${deptId};`,
           function (err) {
             if (err) throw err;
-            console.log("Hooray! We renamed a department.");
+            console.log(" ");
+            console.log(gradient.fruit("   Hooray! We renamed a department.   "));
+            console.log(" ");
             back();
           });
       });
   });
 }
+
 
 // DELETE
 
@@ -655,8 +753,10 @@ function deleteBy() {
       "Employee",
       "Role",
       "Department",
+      new inquirer.Separator(".........."),
       "Back",
-      "Exit"
+      "Exit",
+      new inquirer.Separator("..........")
     ]
   })
     .then(function (answer) {
@@ -720,7 +820,9 @@ function deleteEmployee() {
     WHERE euId = ${empId};`,
           function (err) {
             if (err) throw err;
-            console.log(bbWhite(alertGradient("  Poof! Employee deleted.  ")));
+            console.log(" ");
+            console.log(alertGradient("  Poof! Employee deleted.  "));
+            console.log(" ");
             back();
           });
       });
@@ -761,7 +863,9 @@ function deleteRole() {
     WHERE ruId = ${roleId};`,
           function (err) {
             if (err) throw err;
-            console.log(bbWhite(alertGradient("   Poof! Role deleted.   ")));
+            console.log(" ");
+            console.log(alertGradient("   Poof! Role deleted.   "));
+            console.log(" ");
             back();
           });
       });
@@ -803,14 +907,18 @@ function deleteDepartment() {
     WHERE duId = ${deptId};`,
           function (err) {
             if (err) throw err;
-            console.log(bbWhite(alertGradient("   Poof! Department deleted.   ")));
+            console.log(" ");
+            console.log(alertGradient("   Poof! Department deleted.   "));
+            console.log(" ");
             back();
           });
       });
   });
 }
 
+
 // SEARCH
+
 function searchBy() {
 
   inquirer.prompt({
@@ -822,8 +930,10 @@ function searchBy() {
       "Employee",
       "Role",
       "Department",
+      new inquirer.Separator(".........."),
       "Back",
-      "Exit"
+      "Exit",
+      new inquirer.Separator("..........")
     ]
   })
     .then(function (answer) {
