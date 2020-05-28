@@ -1,12 +1,8 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
 const chalk = require("chalk");
-const chalkPipe = require('chalk-pipe');
-const style = require('ansi-styles');
 const cTable = require('console.table');
-const Table = require('easy-table');
 const printMessage = require('print-message');
-const { printTable } = require('console-table-printer');
 const gradient = require('gradient-string');
 
 var connection = mysql.createConnection({
@@ -16,13 +12,6 @@ var connection = mysql.createConnection({
   password: "RunDevil92",
   database: "employees_db"
 });
-
-// Chalk
-var bbBlack = chalk.bgBlack.bold;
-var bbWhite = chalk.bgWhiteBright.bold;
-var link = chalkPipe('blue.underline');
-var error = chalkPipe('bgRed.#cccccc');
-var warning = chalkPipe('orange.bold');
 
 // Gradient Style
 let alertGradient = gradient([
