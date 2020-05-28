@@ -2,6 +2,9 @@
 
 > A command-line employee tracker using Node and MySQL
 
+## Demo
+![gif](./demo.gif)
+
 ## Installation
 
 Run the following commands to install required dependencies.
@@ -14,9 +17,8 @@ npm i inquirer
 npm i mysql
 
 npm i console.table --save
-
 ```
-## Make it pretty
+### Make it pretty
 ```
 npm i chalk
 
