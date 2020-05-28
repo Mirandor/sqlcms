@@ -493,6 +493,7 @@ function updateBy() {
     choices: [
       "Employee Name",
       "Employee Manager",
+      "Employee Role",
       "Update Roles",
       "Update Departments",
       new inquirer.Separator(".........."),
@@ -510,6 +511,10 @@ function updateBy() {
 
         case "Employee Manager":
           updateManager();
+          break;
+
+        case "Employee Role":
+          updateEmpRole();
           break;
 
         case "Update Roles":
@@ -637,6 +642,10 @@ connection.query("SELECT * FROM employee", function (err, res) {
     });
   });
 });
+}
+
+function updateEmpRole(){
+  
 }
 
 // Update Roles
@@ -922,7 +931,6 @@ function deleteDepartment() {
 function searchBy() {
 
   inquirer.prompt({
-
     name: "searchBy",
     type: "list",
     message: "What do you want to search by?",
@@ -964,67 +972,128 @@ function searchBy() {
 
 // SEARCH by Employee
 function searchByEmployee() {
-  inquirer.prompt({
-    name: "employeeSearch",
-    type: "input",
-    message: "Which employee are you looking for?"
-  })
+  connection.query("SELECT * FROM employee", function (err, res) {
+    if (err) throw err;
+  inquirer.prompt([
+    {
+      name: "employeeSearch",
+      type: "list",
+      message: "Select an employee: ",
+      choices: function () {
+        var choiceEmpSer = [];
+        for (var i = 0; i < res.length; i++) {
+          choiceEmpSer.push(res[i].euId +": " + res[i].first_name + " " + res[i].last_name);
+        }
+          return choiceEmpSer;
+        }
+    }
+  ])
     .then(function (answer) {
-      connection.query("SELECT * FROM employee WHERE first_name = ? OR last_name = ?", { name: answer.first_name, name: answer.last_name }, function (err, res) {
-        if (err) throw err;
-        console.log("euID: " + res[0].euId + " | Name: " + res[0].first_name + " " + res[0].last_name + " | Role Id: " + res[0].role_id + " | Manager Id: " + res[0].manager_id);
+      var splitEmpSer = answer.employeeSearch.split(": ");
+      var empSerId = parseInt(splitEmpSer[0]);
+      var chosenEmpSer;
+      for (var i = 0; i < res.length; i++) {
+        if (res[i].choiceEmpSer === answer.choice) {
+          chosenEmpSer = res[i];
+        }
       }
-      )
-      // var query = "SELECT employee.first_name, employee.last_name FROM employee WHERE ?", { name: answer.first_name }, ; 
-      // connection.query(query, [answer.first_name, answer.last_name], function (err, res) {
-      //   console.log(res.length + " matches found!");
-      //   for (var i = 0; i < res.length; i++) {
-      //     console.log(i+1 + ". " + 
-      //     "First Name: " + res[i].first_name +
-      //     "Last Name:  " + res[i].last_name
-      //     )
-      //   }
-      // });
+      connection.query(`SELECT 
+      employee.euId AS 'id', CONCAT(employee.first_name, " ", employee.last_name) AS 'employee', roles.role AS 'role', roles.salary, CONCAT(m.first_name, " ", m.last_name) AS 'manager', departments.department_name AS 'department'
+      FROM ((employee
+        INNER JOIN employee m ON employee.manager_id = m.euId OR (employee.manager_id IS NULL = m.euId)
+        INNER JOIN roles ON employee.role_id = roles.ruId)
+        INNER JOIN departments ON roles.department_id = departments.duId)
+      WHERE employee.euId = ${empSerId};`,
+      function (err, res) {
+        if (err) throw err;
+        printMessage(["Employee"],{border: true, marginTop: 1, marginBottom: 1, paddingTop: 0, paddingBottom: 0});
+        console.table(res);
+        console.log(" ");
+        back();
+      })
     })
+  })
 }
 
 // SEARCH by Role
 function searchByRole() {
-  inquirer.prompt({
-    name: "roleSearch",
-    type: "input",
-    message: "What role are you looking for?"
-  })
-    .then(function (answer) {
-      var query = "SELECT role, salary FROM roles WHERE ?";
-      connection.query(query, { role: answer.role }, function (err, res) {
-        for (var i = 0; i < res.length; i++) {
-          console.log("Role: " + res[i].role + " || Salary: " + res[i].salary);
+  connection.query("SELECT * FROM roles", function (err, res) {
+    inquirer.prompt([
+      {
+        name: "roleSearch",
+        type: "list",
+        message: "Select a role: ",
+        choices: function () {
+          var choiceRoleSer = [];
+          for (var i = 0; i < res.length; i++) {
+            choiceRoleSer.push(res[i].ruId +": " + res[i].role);
+          }
+            return choiceRoleSer;
         }
-        back();
+      }
+    ])
+    .then(function (answer) {
+      var splitRoleSer = answer.roleSearch.split(": ");
+      var roleSerId = parseInt(splitRoleSer[0]);
+      var chosenRoleSer;
+      for (var i = 0; i < res.length; i++) {
+        if (res[i].choiceRoleSer === answer.choice) {
+          chosenRoleSer = res[i];
+        }
+      }
+      connection.query(`SELECT roles.ruId AS 'id', roles.role, roles.salary, departments.department_name AS 'department'
+      FROM (roles 
+        INNER JOIN departments ON roles.department_id = departments.duId)
+      WHERE roles.ruId = ${roleSerId};`,
+        function (err, res) {
+          if (err) throw err;
+          printMessage(["Role"],{border: true, marginTop: 1, marginBottom: 1, paddingTop: 0, paddingBottom: 0});
+          console.table(res);
+          console.log(" ");
+          back();
+        })
       });
     });
 }
+
 
 // SEARCH by Department
 function searchByDepartment() {
-  inquirer.prompt({
-    name: "departmentSearch",
-    type: "input",
-    message: "What department are you looking for?"
-  })
-    .then(function (answer) {
-      var query = "SELECT * FROM departments WHERE ?";
-      connection.query(query, { department_name: answer.department_name }, function (err, res) {
-        if (err) throw err;
-        for (var i = 0; i < res.length; i++) {
-          console.log("Department: " + res[i].department_name);
+  connection.query("SELECT * FROM departments", function (err, res) {
+    inquirer.prompt([
+      {
+        name: "deptSearch",
+        type: "list",
+        message: "Select a department: ",
+        choices: function () {
+          var choiceDeptSer = [];
+          for (var i = 0; i < res.length; i++) {
+            choiceDeptSer.push(res[i].duId +": " + res[i].department_name);
+          }
+            return choiceDeptSer;
         }
-        back();
+      }
+    ])
+    .then(function (answer) {
+      var splitDeptSer = answer.deptSearch.split(": ");
+      var deptSerId = parseInt(splitDeptSer[0]);
+      var chosenDeptSer;
+      for (var i = 0; i < res.length; i++) {
+        if (res[i].choiceDeptSer === answer.choice) {
+          chosenDeptSer = res[i];
+        }
+      }
+      connection.query(`SELECT departments.duId AS 'id', departments.department_name AS 'department', roles.role, roles.salary
+      FROM (departments 
+        INNER JOIN roles ON departments.duId = roles.department_id)
+      WHERE departments.duId = ${deptSerId};`,
+        function (err, res) {
+          if (err) throw err;
+          printMessage(["Role"],{border: true, marginTop: 1, marginBottom: 1, paddingTop: 0, paddingBottom: 0});
+          console.table(res);
+          console.log(" ");
+          back();
+        })
       });
     });
 }
-
-  // connection.connect();
-
-  // module.exports = employees_db;
