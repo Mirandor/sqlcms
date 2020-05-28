@@ -1,0 +1,33 @@
+{
+  "name": "sqlcms",
+  "version": "1.0.0",
+  "description": "> A command-line employee tracker using Node and MySQL",
+  "main": "employees_db.js",
+  "dependencies": {
+    "ansi-styles": "^4.2.1",
+    "chalk": "^4.0.0",
+    "chalk-pipe": "^4.0.0",
+    "console-table-printer": "^1.4.25",
+    "console.table": "^0.10.0",
+    "easy-table": "^1.1.1",
+    "gradient-string": "^1.2.0",
+    "inquirer": "^7.1.0",
+    "inquirer-autocomplete-prompt": "^1.0.2",
+    "mysql": "^2.18.1",
+    "print-message": "^3.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mirandor/sqlcms.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mirandor/sqlcms/issues"
+  },
+  "homepage": "https://github.com/Mirandor/sqlcms#readme"
+}
